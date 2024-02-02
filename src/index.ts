@@ -1,29 +1,29 @@
 import Bottleneck from "bottleneck";
+import { Response } from "node-fetch";
 import {
   ConstructorParams,
   ExecuteParameters,
   ExecuteRequestParameters,
+  HOST,
   LimitType,
+  METHODS,
   PlatformId,
   RateLimits,
-  METHODS,
-  HOST,
 } from "./@types";
 import { extractMethod, extractRegion } from "./extractor";
 import {
-  createRateLimiters,
   createRateLimitRetry,
+  createRateLimiters,
   synchronizeRateLimiters,
   updateRateLimiters,
 } from "./rate-limiter";
 import { request } from "./request";
 import { createJobOptions } from "./utils";
-import { Response } from "node-fetch";
 
 const debug = require("debug")("riotratelimiter:main");
 const debugQ = require("debug")("riotratelimiter:queue");
 
-export { extractMethod, extractRegion, METHODS, HOST, PlatformId };
+export { HOST, METHODS, PlatformId, extractMethod, extractRegion };
 
 export class RiotRateLimiter {
   readonly configuration: {
@@ -31,7 +31,7 @@ export class RiotRateLimiter {
     concurrency: number;
     retryAfterDefault: number;
     retryCount: number;
-    redis?: Bottleneck.RedisConnectionOptions;
+    redis?: /* Bottleneck.RedisConnectionOptions */ unknown;
     datastore: "local" | "ioredis";
   } = {
     debug: false,
@@ -109,6 +109,16 @@ export class RiotRateLimiter {
           region,
           method,
           msg,
+          this.rateLimiters[region][method].main.counts()
+        );
+      });
+
+      this.rateLimiters[region][method].main.on("error", (err: Error) => {
+        console.log(
+          region,
+          method,
+          "ERROR",
+          err.message,
           this.rateLimiters[region][method].main.counts()
         );
       });
