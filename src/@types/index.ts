@@ -140,7 +140,7 @@ export interface METHODS {
     GET_FEATURED_GAMES: string;
   };
   SPECTATOR: {
-    GET_GAME_BY_SUMMONER_ID: string;
+    GET_GAME_BY_SUMMONER_PUUID: string;
     GET_FEATURED_GAMES: string;
   };
   SUMMONER: {
@@ -284,8 +284,8 @@ export const METHODS = {
     GET_FEATURED_GAMES: "/lol/spectator/tft/v5/featured-games",
   },
   SPECTATOR: {
-    GET_GAME_BY_SUMMONER_ID:
-      "/lol/spectator/v5/active-games/by-summoner/:summonerId",
+    GET_GAME_BY_SUMMONER_PUUID:
+      "/lol/spectator/v5/active-games/by-summoner/:puuid",
     GET_FEATURED_GAMES: "/lol/spectator/v5/featured-games",
   },
   SUMMONER: {

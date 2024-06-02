@@ -19,7 +19,6 @@ import {
 } from "./rate-limiter";
 import { request } from "./request";
 import { createJobOptions } from "./utils";
-import { Response } from "node-fetch";
 import debug from "debug";
 
 const logMain = debug("riotratelimiter:main");

@@ -215,9 +215,9 @@ describe("Extractor", () => {
       ],
       // SPECTATOR
       [
-        "SPECTATOR.GET_GAME_BY_SUMMONER_ID",
-        METHODS.SPECTATOR.GET_GAME_BY_SUMMONER_ID,
-        { summonerId: "1234" },
+        "SPECTATOR.GET_GAME_BY_SUMMONER_PUUID",
+        METHODS.SPECTATOR.GET_GAME_BY_SUMMONER_PUUID,
+        { puuid: "1234" },
       ],
       [
         "SPECTATOR.GET_FEATURED_GAMES",
