@@ -1,4 +1,4 @@
-import fetch, { RequestInit, RequestInfo } from "node-fetch";
+import fetch, { RequestInfo, RequestInit } from "node-fetch";
 import { extractRateLimits } from "./utils";
 
 export const request = async ({

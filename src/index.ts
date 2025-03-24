@@ -1,29 +1,30 @@
 import Bottleneck from "bottleneck";
+import { Response } from "node-fetch";
 import {
   ConstructorParams,
   ExecuteParameters,
   ExecuteRequestParameters,
+  HOST,
   LimitType,
+  METHODS,
   PlatformId,
   RateLimits,
-  METHODS,
-  HOST,
 } from "./@types";
 import { extractMethod, extractRegion } from "./extractor";
 import {
-  createRateLimiters,
   createRateLimitRetry,
+  createRateLimiters,
   synchronizeRateLimiters,
   updateRateLimiters,
 } from "./rate-limiter";
 import { request } from "./request";
 import { createJobOptions } from "./utils";
-import { Response } from "node-fetch";
+import debug from "debug";
 
-const debug = require("debug")("riotratelimiter:main");
-const debugQ = require("debug")("riotratelimiter:queue");
+const logMain = debug("riotratelimiter:main");
+const logQueue = debug("riotratelimiter:queue");
 
-export { extractMethod, extractRegion, METHODS, HOST, PlatformId };
+export { HOST, METHODS, PlatformId, extractMethod, extractRegion };
 
 export class RiotRateLimiter {
   readonly configuration: {
@@ -31,7 +32,7 @@ export class RiotRateLimiter {
     concurrency: number;
     retryAfterDefault: number;
     retryCount: number;
-    redis?: Bottleneck.RedisConnectionOptions;
+    redis?: /* Bottleneck.RedisConnectionOptions */ unknown;
     datastore: "local" | "ioredis";
   } = {
     debug: false,
@@ -67,7 +68,7 @@ export class RiotRateLimiter {
     rateLimits: RateLimits
   ): void {
     if (!this.rateLimiters[region] && rateLimits.appLimits) {
-      debug("Setting up rateLimiter for", region);
+      logMain("Setting up rateLimiter for", region);
       this.rateLimiters[region] = createRateLimiters(
         {
           limits: rateLimits.appLimits,
@@ -86,7 +87,7 @@ export class RiotRateLimiter {
     }
 
     if (!this.rateLimiters[region]?.[method] && rateLimits.methodLimits) {
-      debug("Setting up rateLimiter for", region, method);
+      logMain("Setting up rateLimiter for", region, method);
       this.rateLimiters[region][method] = createRateLimiters(
         {
           limits: rateLimits.methodLimits,
@@ -105,10 +106,20 @@ export class RiotRateLimiter {
 
       // TEMP DEBUG
       this.rateLimiters[region][method].main.on("debug", (msg: string) => {
-        debugQ(
+        logQueue(
           region,
           method,
           msg,
+          this.rateLimiters[region][method].main.counts()
+        );
+      });
+
+      this.rateLimiters[region][method].main.on("error", (err: Error) => {
+        console.log(
+          region,
+          method,
+          "ERROR",
+          err.message,
           this.rateLimiters[region][method].main.counts()
         );
       });
@@ -121,14 +132,14 @@ export class RiotRateLimiter {
     rateLimits: RateLimits
   ): void {
     if (this.rateLimiters[region]) {
-      debug("Updating rateLimiter for", region);
+      logMain("Updating rateLimiter for", region);
       this.rateLimiters[region].limiters = updateRateLimiters(
         this.rateLimiters[region].limiters,
         { limits: rateLimits.appLimits, counts: rateLimits.appCounts }
       );
     }
     if (this.rateLimiters[region]?.[method]) {
-      debug("Updating rateLimiter for", region, method);
+      logMain("Updating rateLimiter for", region, method);
       this.rateLimiters[region][method].limiters = updateRateLimiters(
         this.rateLimiters[region][method].limiters,
         { limits: rateLimits.methodLimits, counts: rateLimits.methodCounts }
@@ -141,7 +152,7 @@ export class RiotRateLimiter {
     method: string,
     rateLimits: RateLimits
   ): Promise<void> {
-    debug("Syncing Rate Limiters", region, method);
+    logMain("Syncing Rate Limiters", region, method);
     if (this.rateLimiters[region]?.[method]) {
       this.rateLimiters[region].limiters = await synchronizeRateLimiters(
         this.rateLimiters[region].limiters,
@@ -169,11 +180,11 @@ export class RiotRateLimiter {
     if (!region || !method)
       throw new Error(`unsupported region: ${region} or method: ${method}`);
 
-    debug("Request:", req.url, "region:", region, "method:", method);
+    logMain("Request:", req.url, "region:", region, "method:", method);
 
     const limiter = this.rateLimiters?.[region]?.[method];
     if (!limiter) {
-      debug("No limiters setup yet, sending inital request");
+      logMain("No limiters setup yet, sending inital request");
       return this.executeRequest(
         { req, region, method },
         createJobOptions(jobOptions)
@@ -193,9 +204,9 @@ export class RiotRateLimiter {
       request(req)
         .then(({ rateLimits, json }) => {
           this.setupRateLimiters(region, method, rateLimits);
-          this.syncRateLimiters(region, method, rateLimits).finally(() =>
-            resolve(json)
-          );
+          this.syncRateLimiters(region, method, rateLimits)
+            .finally(() => resolve(json))
+            .catch(reject);
         })
         .catch(
           ({
