@@ -97,7 +97,7 @@ export interface METHODS {
   };
   LEAGUE: {
     GET_CHALLENGER_BY_QUEUE: string;
-    GET_ENTRIES_BY_SUMMONER: string;
+    GET_ENTRIES_BY_PUUID: string;
     GET_ALL_ENTRIES: string;
     GET_GRANDMASTER_BY_QUEUE: string;
     GET_LEAGUE_BY_ID: string;
@@ -146,10 +146,7 @@ export interface METHODS {
   };
   SUMMONER: {
     GET_BY_RSO_PUUID: string;
-    GET_BY_ACCOUNT_ID: string;
     GET_BY_PUUID: string;
-    GET_BY_SUMMONER_ID: string;
-    GET_BY_ACCESS_TOKEN: string;
   };
   TFT_LEAGUE: {
     GET_CHALLENGER: string;
@@ -238,7 +235,7 @@ export const METHODS = {
   },
   LEAGUE: {
     GET_CHALLENGER_BY_QUEUE: "/lol/league/v4/challengerleagues/by-queue/:queue",
-    GET_ENTRIES_BY_SUMMONER: "/lol/league/v4/entries/by-summoner/:summonerId",
+    GET_ENTRIES_BY_PUUID: "/lol/league/v4/entries/by-puuid/:puuid",
     GET_ALL_ENTRIES: "/lol/league/v4/entries/:queue/:tier/:division",
     GET_GRANDMASTER_BY_QUEUE:
       "/lol/league/v4/grandmasterleagues/by-queue/:queue",
@@ -291,10 +288,7 @@ export const METHODS = {
   },
   SUMMONER: {
     GET_BY_RSO_PUUID: "/fulfillment/v1/summoners/by-puuid/:rsoPuuid",
-    GET_BY_ACCESS_TOKEN: "/lol/summoner/v4/summoners/me",
-    GET_BY_ACCOUNT_ID: "/lol/summoner/v4/summoners/by-account/:accountId",
     GET_BY_PUUID: "/lol/summoner/v4/summoners/by-puuid/:puuid",
-    GET_BY_SUMMONER_ID: "/lol/summoner/v4/summoners/:summonerId",
   },
   TFT_LEAGUE: {
     GET_CHALLENGER: "/tft/league/v1/challenger",
